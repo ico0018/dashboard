@@ -3,12 +3,24 @@
 from flask import Flask
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
+from flask.cli import with_appcontext
 from importlib import import_module
+from sqlalchemy import text
 
 from flask_admin import Admin
 
+import click
+
 db = SQLAlchemy()
 login_manager = LoginManager() 
+
+@click.command('init-db')
+@with_appcontext
+def init_db_command():
+    with open('schema.sql', 'r') as f:
+        schema = f.read()
+        db.session.execute(text(schema))
+    click.echo('Database initialized.')
 
 def register_extensions(app):
     db.init_app(app)
@@ -32,4 +44,5 @@ def create_app(config):
     register_extensions(app)
     register_blueprints(app)
     register_admin(app)
+    app.cli.add_command(init_db_command)
     return app
