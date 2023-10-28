@@ -1,12 +1,12 @@
 from flask_admin.contrib.sqla import ModelView
 from flask_login import current_user
 from flask import redirect, url_for, flash
+from apps.authentication.util import hash_pass
+from apps.authentication.forms import UserForm
 
 class UserAdminView(ModelView):
-    column_list = ['id', 'name', 'login', 'email', 'admin']  # Updated columns
-    form_columns = ['name', 'login', 'encrypted_password', 'salt', 'email', 'admin']  # Updated columns
-    column_searchable_list = ['name', 'login', 'email']  # Updated columns
-    column_sortable_list = ['id', 'name', 'login', 'email', 'admin']  # Updated columns
+
+    form = UserForm
 
     def is_accessible(self):
         return current_user.is_authenticated and current_user.admin == 1  # Updated condition to check if user is admin
@@ -14,4 +14,11 @@ class UserAdminView(ModelView):
     def inaccessible_callback(self, name, **kwargs):
         flash('You do not have permission to access this page.')
         return redirect(url_for('auth.login'))
+    
+    def on_model_change(self, form, model, is_created):
+        if form.password.data:  # Check if password field is not empty
+            salt, encrypted_password = hash_pass(form.password.data)
+            model.salt = salt
+            model.encrypted_password = encrypted_password
+        return super(UserAdminView, self).on_model_change(form, model, is_created)
 

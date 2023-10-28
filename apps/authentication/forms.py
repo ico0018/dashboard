@@ -14,4 +14,12 @@ class LoginForm(FlaskForm):
                              id='pwd_login',
                              validators=[DataRequired()])
 
+class UserForm(FlaskForm):
+    name = StringField('Name', validators=[DataRequired()])
+    login = StringField('Login', validators=[DataRequired()])
+    password = PasswordField('Password')  # This field will be empty on edit
+    email = StringField('Email', validators=[DataRequired()])
+    admin = StringField('Admin', validators=[DataRequired()])
+
+
 
