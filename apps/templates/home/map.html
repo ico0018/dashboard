@@ -7,7 +7,7 @@
 <style>
   /* Ensure the map takes up the full width and height of the container */
   #map {
-    height: 500px;  /* Adjust this value as needed */
+    height: 500px;  
     width: 100%;
   }
 </style>
@@ -36,7 +36,6 @@
 
 {% endblock content %}
 
-<!-- Specific Page JS goes HERE  -->
 {% block javascripts %}
 
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAcGgcaLICGT-j2yzCY-5MWQNn3hkIY0ZM"></script>
@@ -46,7 +45,7 @@
 
   $(document).ready(function() {
       function initMap() {
-          // The map's center can be set to a specific location, here I'm setting it to the first partner's location
+         
           var center = { lat: partnersData[0].latitude, lng: partnersData[0].longitude };
 
           var map = new google.maps.Map(
