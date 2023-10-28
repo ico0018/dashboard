@@ -27,14 +27,14 @@ def login():
     if 'login' in request.form:
 
         # read form data
-        username = request.form['username']
+        email = request.form['email']  # Updated to use 'email' instead of 'username'
         password = request.form['password']
 
         # Locate user
-        user = Users.query.filter_by(username=username).first()
+        user = Users.query.filter_by(email=email).first()  # Updated to filter by 'email' instead of 'username'
 
         # Check the password
-        if user and verify_pass(password, user.password):
+        if user and verify_pass(password, user.salt, user.encrypted_password):  # Updated to use 'encrypted_password' instead of 'password'
 
             login_user(user)
             return redirect(url_for('authentication_blueprint.route_default'))
