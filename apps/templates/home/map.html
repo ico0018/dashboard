@@ -3,9 +3,21 @@
 {% block title %} Maps {% endblock %} 
 
 <!-- Specific Page CSS goes HERE  -->
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+<style>
+  /* Ensure the map takes up the full width and height of the container */
+  #map {
+    height: 500px;  /* Adjust this value as needed */
+    width: 100%;
+  }
+</style>
+{% endblock stylesheets %}
 
 {% block content %}
+
+<div id="partnersData" style="display:none;">
+  {{ partners_coordinates|tojson|safe }}
+</div>
 
   <div class="content">
     <div class="row">
@@ -27,11 +39,29 @@
 <!-- Specific Page JS goes HERE  -->
 {% block javascripts %}
 
-  <script>
-    $(document).ready(function() {
-      // Javascript method's body can be found in assets/js/demos.js
-      demo.initGoogleMaps();
-    });
-  </script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAcGgcaLICGT-j2yzCY-5MWQNn3hkIY0ZM"></script>
+
+<script>
+  var partnersData = JSON.parse(document.getElementById('partnersData').textContent);
+
+  $(document).ready(function() {
+      function initMap() {
+          // The map's center can be set to a specific location, here I'm setting it to the first partner's location
+          var center = { lat: partnersData[0].latitude, lng: partnersData[0].longitude };
+
+          var map = new google.maps.Map(
+              document.getElementById('map'), { zoom: 4, center: center });
+
+          // Add markers for each partner
+          partnersData.forEach(function(coord) {
+              var position = new google.maps.LatLng(coord.latitude, coord.longitude);
+              new google.maps.Marker({ position: position, map: map });
+          });
+      }
+
+      // Call the initMap function to display the map with markers
+      initMap();
+  });
+</script>
 
 {% endblock javascripts %}
