@@ -3,13 +3,19 @@
 {% block title %} Dashboard {% endblock %} 
 
 <!-- Specific Page CSS goes HERE  -->
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+<style>
+  .chart-container {
+    padding-bottom: 20px;
+  }
+</style>
+{% endblock stylesheets %}
 
 {% block content %}
 
     <div class="content">
         <div class="row">
-            <div class="col-12">
+            <div class="col-lg-4 col-md-6 chart-container">
                 <div class="card card-chart">
                     <div class="card-header">
                         <h5 class="card-category">Malware Analysis</h5>
@@ -36,6 +42,10 @@
                     </div>
                 </div>
             </div>
+            <!-- Placeholder for the Add button -->
+            <div class="col-lg-4 col-md-6 chart-container" id="addChartCol">
+                <button id="addChart" class="btn btn-primary">Add Chart</button>
+            </div>
         </div>
     </div>
 
@@ -47,32 +57,38 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function () {
-        var currentChart;
+        var chartCount = 1; // Keep track of how many charts we have
 
-        function fetchAndDisplayMalwareData(chartType) {
+        var charts = {};
+
+        function fetchAndDisplayMalwareData(chartType, canvasId) {
             $.getJSON('/malware-data', function(malwareData) {
-                console.log("Original data:", malwareData); // Debug: 原始数据
+               
+                console.log("Original data:", malwareData);
 
-                // Get checked filetypes
+              
                 var checkedFiletypes = $('input[name="filetype"]:checked').map(function() {
                     return this.value;
                 }).get();
-                console.log("Checked filetypes:", checkedFiletypes); // Debug: 选中的文件类型
+                
+                console.log("Checked filetypes:", checkedFiletypes);
 
-                // Filter data based on checked filetypes
+               
                 var filteredData = malwareData.filter(function(item) {
                     return checkedFiletypes.includes(item.filetype);
                 });
-                console.log("Filtered data:", filteredData); // Debug: 过滤后的数据
-
+                
                 var labels = filteredData.map(function(item) { return item.filetype; });
                 var counts = filteredData.map(function(item) { return item.count; });
 
-                var ctx = document.getElementById('malwareDistributionChart').getContext('2d');
-                if (currentChart) {
-                    currentChart.destroy();
+               
+                var ctx = document.getElementById(canvasId).getContext('2d');
+                
+                if (charts[canvasId]) {
+                    charts[canvasId].destroy();
                 }
-                currentChart = new Chart(ctx, {
+                
+                charts[canvasId] = new Chart(ctx, {
                     type: chartType,
                     data: {
                         labels: labels,
@@ -86,33 +102,59 @@
                     },
                     options: chartType === 'pie' ? {} : {
                         scales: {
-                            yAxes: [{
-                                ticks: {
-                                    beginAtZero: true
-                                }
-                            }]
+                            y: { 
+                                beginAtZero: true
+                            }
                         }
                     }
                 });
             }).fail(function(jqXHR, textStatus, errorThrown) {
-                console.error("Error fetching data: ", textStatus, errorThrown); // Debug: 数据请求错误
+
+                console.error("Error fetching data: ", textStatus, errorThrown);
             });
         }
 
-        // Initial chart display
-        fetchAndDisplayMalwareData('bar');
+        $(document).ready(function () {
+           
+            $('body').on('change', '#chartType', function() {
+                var selectedType = $(this).val();
+                var canvasId = $(this).closest('.card').find('canvas').attr('id');
+                fetchAndDisplayMalwareData(selectedType, canvasId);
+            });
 
-        // Event listener for chart type change
-        $('#chartType').change(function() {
-            var selectedType = $(this).val();
-            fetchAndDisplayMalwareData(selectedType);
+            $('body').on('change', 'input[name="filetype"]', function() {
+                var selectedType = $(this).closest('.card').find('#chartType').val();
+                var canvasId = $(this).closest('.card').find('canvas').attr('id');
+                fetchAndDisplayMalwareData(selectedType, canvasId);
+            });
         });
 
-        // Event listener for filetype filter change
-        $('input[name="filetype"]').change(function() {
-            var selectedType = $('#chartType').val();
-            fetchAndDisplayMalwareData(selectedType);
+
+
+        // Function to duplicate the chart
+        function duplicateChart() {
+            var originalChartContainer = $('.chart-container').first();
+            var newChartContainer = originalChartContainer.clone();
+
+            // Update the ID of the new chart canvas
+            var newCanvasId = 'malwareDistributionChart' + chartCount;
+            newChartContainer.find('canvas').attr('id', newCanvasId);
+
+            // Insert the new chart before the add button
+            $('#addChartCol').before(newChartContainer);
+
+            // Redraw the chart in the new canvas
+            fetchAndDisplayMalwareData('bar', newCanvasId); // Pass the new canvas ID to your chart drawing function
+            chartCount++;
+        }
+
+        // Event listener for add chart button
+        $('#addChart').click(function() {
+            duplicateChart();
         });
+
+        // Call fetchAndDisplayMalwareData for the initial chart with its specific canvas ID
+        fetchAndDisplayMalwareData('bar', 'malwareDistributionChart');
     });
 </script>
 {% endblock javascripts %}
