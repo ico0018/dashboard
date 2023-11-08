@@ -8,6 +8,7 @@ from jinja2 import TemplateNotFound
 # Import the map module
 from . import map
 from . import dashboard
+from . import userprofile
 
 @blueprint.route('/index')
 @login_required

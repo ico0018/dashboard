@@ -4,6 +4,7 @@ from flask import Flask
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from flask.cli import with_appcontext
+from flask_wtf.csrf import CSRFProtect
 from importlib import import_module
 from sqlalchemy import text
 
@@ -41,6 +42,7 @@ def register_admin(app):
 def create_app(config):
     app = Flask(__name__)
     app.config.from_object(config)
+    csrf = CSRFProtect(app)
     register_extensions(app)
     register_blueprints(app)
     register_admin(app)
