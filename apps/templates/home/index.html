@@ -1,160 +1,129 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} Dashboard {% endblock %} 
+{% block title %}Dashboard{% endblock %}
 
-<!-- Specific Page CSS goes HERE  -->
+<!-- Specific Page CSS goes HERE -->
 {% block stylesheets %}
 <style>
   .chart-container {
     padding-bottom: 20px;
   }
+  .chart-type-selector {
+    display: block;
+    margin-top: 10px;
+  }
 </style>
 {% endblock stylesheets %}
 
 {% block content %}
-
-    <div class="content">
-        <div class="row">
-            <div class="col-lg-4 col-md-6 chart-container">
-                <div class="card card-chart">
-                    <div class="card-header">
-                        <h5 class="card-category">Malware Analysis</h5>
-                        <h2 class="card-title">Filetype Distribution</h2>
-                        <!-- Dropdown for selecting chart type -->
-                        <div class="chart-type-selector">
-                            <select id="chartType">
-                                <option value="bar">Bar Chart</option>
-                                <option value="line">Line Chart</option>
-                                <option value="pie">Pie Chart</option>
-                            </select>
-                        </div>
-                        <!-- Checkboxes for selecting file types -->
-                        <div class="filetype-filters">
-                            <input type="checkbox" id="exeFilter" name="filetype" value="exe" checked> <label for="exeFilter">EXE</label>
-                            <input type="checkbox" id="pdfFilter" name="filetype" value="pdf" checked> <label for="pdfFilter">PDF</label>
-                            <input type="checkbox" id="docFilter" name="filetype" value="doc" checked> <label for="docFilter">DOC</label>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="chart-area">
-                            <canvas id="malwareDistributionChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Placeholder for the Add button -->
-            <div class="col-lg-4 col-md-6 chart-container" id="addChartCol">
-                <button id="addChart" class="btn btn-primary">Add Chart</button>
-            </div>
-        </div>
+<div class="content">
+    <div class="row" id="chartsRow">
+        <!-- Charts will be dynamically inserted here -->
     </div>
-
+</div>
 {% endblock content %}
 
-<!-- Specific Page JS goes HERE  -->
+<!-- Specific Page JS goes HERE -->
 {% block javascripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function () {
-        var chartCount = 1; // Keep track of how many charts we have
+        var userId = '5'; // Replace with actual user_id retrieval logic
 
-        var charts = {};
+        function createChart(data, queryTitle, chartType, canvasId) {
+            var labels = data.map(function(item) { return item.name; });
+            var counts = data.map(function(item) { return item.count; });
+            var ctx = document.getElementById(canvasId).getContext('2d');
 
-        function fetchAndDisplayMalwareData(chartType, canvasId) {
-            $.getJSON('/malware-data', function(malwareData) {
-               
-                console.log("Original data:", malwareData);
+            // Destroy the old chart if it exists
+            if (window.charts && window.charts[canvasId]) {
+                window.charts[canvasId].destroy();
+            }
 
-              
-                var checkedFiletypes = $('input[name="filetype"]:checked').map(function() {
-                    return this.value;
-                }).get();
-                
-                console.log("Checked filetypes:", checkedFiletypes);
-
-               
-                var filteredData = malwareData.filter(function(item) {
-                    return checkedFiletypes.includes(item.filetype);
-                });
-                
-                var labels = filteredData.map(function(item) { return item.filetype; });
-                var counts = filteredData.map(function(item) { return item.count; });
-
-               
-                var ctx = document.getElementById(canvasId).getContext('2d');
-                
-                if (charts[canvasId]) {
-                    charts[canvasId].destroy();
-                }
-                
-                charts[canvasId] = new Chart(ctx, {
-                    type: chartType,
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: '# of Samples',
-                            data: counts,
-                            backgroundColor: 'rgba(0, 123, 255, 0.5)',
-                            borderColor: 'rgba(0, 123, 255, 1)',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: chartType === 'pie' ? {} : {
-                        scales: {
-                            y: { 
-                                beginAtZero: true
-                            }
+            // Store chart instance to window.charts for potential destruction later
+            window.charts = window.charts || {};
+            window.charts[canvasId] = new Chart(ctx, {
+                type: chartType,
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: queryTitle,
+                        data: counts,
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(54, 162, 235, 0.2)',
+                            'rgba(255, 206, 86, 0.2)',
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(153, 102, 255, 0.2)',
+                            'rgba(255, 159, 64, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(255,99,132,1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: chartType !== 'pie' ? {
+                        y: {
+                            beginAtZero: true
                         }
-                    }
+                    } : {}
+                }
+            });
+        }
+
+        // Function to fetch and display charts
+        function fetchAndDisplayCharts(userId) {
+            var endpoint = '/process_user_queries/' + userId;
+            $.getJSON(endpoint, function(responseData) {
+                // For each query data, create a chart
+                responseData.forEach(function(queryData, index) {
+                    var chartContainerId = 'chartContainer' + index;
+                    var chartCanvasId = 'chartCanvas' + index;
+
+                    // Create the chart container and canvas
+                    var chartContainer = $('<div>', { 'class': 'col-lg-4 col-md-6 chart-container', 'id': chartContainerId });
+                    var card = $('<div>', { 'class': 'card card-chart' });
+                    var cardHeader = $('<div>', { 'class': 'card-header' });
+                    var cardBody = $('<div>', { 'class': 'card-body' });
+                    var chartArea = $('<div>', { 'class': 'chart-area' });
+                    var canvas = $('<canvas>', { 'id': chartCanvasId });
+
+                    // Append elements
+                    chartArea.append(canvas);
+                    cardBody.append(chartArea);
+                    card.append(cardHeader, cardBody);
+                    chartContainer.append(card);
+                    $('#chartsRow').append(chartContainer);
+
+                    // Create chart type selector
+                    var chartTypeSelector = $('<select>', { 'class': 'chart-type-selector', 'id': 'chartType' + index });
+                    chartTypeSelector.append('<option value="bar">Bar Chart</option>', '<option value="pie">Pie Chart</option>');
+                    cardHeader.append($('<h5>').text(queryData.query_title), chartTypeSelector);
+
+                    // Create the initial chart
+                    createChart(queryData.data, queryData.query_title, 'bar', chartCanvasId);
+
+                    // Change event for chart type selector
+                    chartTypeSelector.change(function() {
+                        var selectedType = $(this).val();
+                        createChart(queryData.data, queryData.query_title, selectedType, chartCanvasId);
+                    });
                 });
             }).fail(function(jqXHR, textStatus, errorThrown) {
-
                 console.error("Error fetching data: ", textStatus, errorThrown);
             });
         }
 
-        $(document).ready(function () {
-           
-            $('body').on('change', '#chartType', function() {
-                var selectedType = $(this).val();
-                var canvasId = $(this).closest('.card').find('canvas').attr('id');
-                fetchAndDisplayMalwareData(selectedType, canvasId);
-            });
-
-            $('body').on('change', 'input[name="filetype"]', function() {
-                var selectedType = $(this).closest('.card').find('#chartType').val();
-                var canvasId = $(this).closest('.card').find('canvas').attr('id');
-                fetchAndDisplayMalwareData(selectedType, canvasId);
-            });
-        });
-
-
-
-        // Function to duplicate the chart
-        function duplicateChart() {
-            var originalChartContainer = $('.chart-container').first();
-            var newChartContainer = originalChartContainer.clone();
-
-            // Update the ID of the new chart canvas
-            var newCanvasId = 'malwareDistributionChart' + chartCount;
-            newChartContainer.find('canvas').attr('id', newCanvasId);
-
-            // Insert the new chart before the add button
-            $('#addChartCol').before(newChartContainer);
-
-            // Redraw the chart in the new canvas
-            fetchAndDisplayMalwareData('bar', newCanvasId); // Pass the new canvas ID to your chart drawing function
-            chartCount++;
-        }
-
-        // Event listener for add chart button
-        $('#addChart').click(function() {
-            duplicateChart();
-        });
-
-        // Call fetchAndDisplayMalwareData for the initial chart with its specific canvas ID
-        fetchAndDisplayMalwareData('bar', 'malwareDistributionChart');
+        // Fetch and display charts for the logged-in user
+        fetchAndDisplayCharts(userId);
     });
 </script>
 {% endblock javascripts %}

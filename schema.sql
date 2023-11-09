@@ -86,6 +86,8 @@ CREATE TABLE `queries` (
   `id` INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
   `unique_identifier` VARCHAR(25) NOT NULL UNIQUE,
   `query` TEXT NOT NULL
+  `title` VARCHAR(50),  -- Add title column
+  `description` TEXT    -- Add description column
 );
 
 CREATE TABLE `raw_malware` (
@@ -138,3 +140,10 @@ CREATE TABLE `users` (
   `email` VARCHAR(100) NOT NULL,
   `admin` INT NOT NULL DEFAULT '0'
 );
+
+CREATE TABLE user_queries (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    query_id INT NOT NULL,
+);
+
