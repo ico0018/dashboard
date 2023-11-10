@@ -33,13 +33,14 @@ def register_blueprints(app):
         app.register_blueprint(module.blueprint)
         
 def register_admin(app):
-    from apps.authentication.admin_view import UserAdminView, QueryAdminView
+    from apps.authentication.admin_view import UserAdminView, QueryAdminView, UserQueryAdminView
     from apps.authentication.models import Users
-    from apps.home.models import Query
+    from apps.home.models import Query, UserQuery
     # Initialize Flask-Admin
     admin = Admin(app, name='Admin', template_mode='bootstrap4')
     admin.add_view(UserAdminView(Users, db.session))
     admin.add_view(QueryAdminView(Query, db.session))
+    admin.add_view(UserQueryAdminView(UserQuery, db.session, name='User_Query'))
 
 def create_app(config):
     app = Flask(__name__)

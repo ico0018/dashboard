@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from apps import db
 
 Base = declarative_base()
 
@@ -52,8 +53,16 @@ class RawMalware(Base):
 
 class Query(Base):
     __tablename__ = 'queries'
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     unique_identifier = Column(String(25), unique=True, nullable=False)
     query = Column(String(255), nullable=False)
     title = Column(String(50))
     description = Column(String(255))
+
+class UserQuery(Base):
+    __tablename__ = 'user_queries'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, nullable=False)
+    query_id = Column(Integer, nullable=False)
+
+

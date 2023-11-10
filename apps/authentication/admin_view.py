@@ -29,3 +29,24 @@ class QueryAdminView(ModelView):
     can_edit = True  
     can_delete = True 
 
+    column_list = ('id', 'unique_identifier', 'query', 'title', 'description')
+
+    def is_accessible(self):
+        return current_user.is_authenticated and current_user.admin == 1  # Updated condition to check if user is admin
+
+    def inaccessible_callback(self, name, **kwargs):
+        flash('You do not have permission to access this page.')
+        return redirect(url_for('auth.login'))
+
+class UserQueryAdminView(ModelView):
+    can_create = True
+    can_edit = True
+    can_delete = True
+
+    def is_accessible(self):
+        return current_user.is_authenticated and current_user.admin == 1  # Updated condition to check if user is admin
+
+    def inaccessible_callback(self, name, **kwargs):
+        flash('You do not have permission to access this page.')
+        return redirect(url_for('auth.login'))
+
