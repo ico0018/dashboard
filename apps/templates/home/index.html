@@ -44,13 +44,11 @@
 
 <!-- Specific Page JS goes HERE -->
 {% block javascripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function () {
 
         var userId = JSON.parse(document.getElementById('userId').textContent); 
-        
+
         function createChart(data, queryTitle, chartType, canvasId) {
             var labels = data.map(function(item) { return item.name; });
             var counts = data.map(function(item) { return item.count; });
@@ -153,20 +151,31 @@
             var chartId = $(this).closest('.chart-container').find('canvas').attr('id');
 
             if (window.charts && window.charts[chartId]) {
+                var chartType = window.charts[chartId].config.type;
                 var chartData = window.charts[chartId].config.data;
                 var modalChartCtx = document.getElementById('modalChartCanvas').getContext('2d');
 
                 if (window.modalChart) window.modalChart.destroy();
 
+                var modalDialog = $('#chartModal .modal-dialog');
+                if (chartType === 'pie') {
+                    modalDialog.removeClass('modal-lg').addClass('modal-sm');
+                } else {
+                    modalDialog.removeClass('modal-sm').addClass('modal-lg');
+                }
+
                 window.modalChart = new Chart(modalChartCtx, {
-                    type: window.charts[chartId].config.type, 
+                    type: chartType, 
                     data: chartData,
                     options: window.charts[chartId].config.options
                 });
+
+                $('#chartModal').modal('show'); 
             } else {
                 console.log("Chart instance not found for ID: " + chartId);
             }
         });
+
 
 
     });
