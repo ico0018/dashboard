@@ -86,8 +86,8 @@ CREATE TABLE `queries` (
   `id` INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
   `unique_identifier` VARCHAR(25) NOT NULL UNIQUE,
   `query` TEXT NOT NULL
-  `title` VARCHAR(50),  -- Add title column
-  `description` TEXT    -- Add description column
+  `title` VARCHAR(50),  
+  `description` TEXT    
 );
 
 CREATE TABLE `raw_malware` (

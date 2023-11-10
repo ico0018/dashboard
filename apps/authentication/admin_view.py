@@ -8,6 +8,8 @@ class UserAdminView(ModelView):
 
     form = UserForm
 
+    column_list = ('id', 'name', 'login', 'email', 'admin')
+
     def is_accessible(self):
         return current_user.is_authenticated and current_user.admin == 1  # Updated condition to check if user is admin
 
@@ -21,4 +23,9 @@ class UserAdminView(ModelView):
             model.salt = salt
             model.encrypted_password = encrypted_password
         return super(UserAdminView, self).on_model_change(form, model, is_created)
+    
+class QueryAdminView(ModelView):
+    can_create = True  
+    can_edit = True  
+    can_delete = True 
 

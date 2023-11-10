@@ -49,3 +49,11 @@ class RawMalware(Base):
     analyzed = Column(String(1))
     sent_to_partners = Column(String(1))
     static_results_id = Column(Integer)
+
+class Query(Base):
+    __tablename__ = 'queries'
+    id = Column(Integer, primary_key=True)
+    unique_identifier = Column(String(25), unique=True, nullable=False)
+    query = Column(String(255), nullable=False)
+    title = Column(String(50))
+    description = Column(String(255))
