@@ -47,6 +47,4 @@ def process_user_queries(user_id):
             'data': data
         })
 
-        print(results)
-
     return jsonify(results)

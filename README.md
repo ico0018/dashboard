@@ -66,3 +66,18 @@ Access the application at http://localhost:5000 in your browser.
 
 ## Admin Interface
 To manage the database, navigate to http://localhost:5000/admin. This admin interface allows for direct manipulation and management of the database entries.
+
+## Database Configuration
+In the file: apps/config.py file
+
+```
+class ProductionConfig(Config):
+    # ... other config settings ...
+    SQLALCHEMY_DATABASE_URI = 'mysql://username:password@localhost/database_name'
+    # ... other config settings ...
+
+class DebugConfig(Config):
+    # ... other config settings ...
+    SQLALCHEMY_DATABASE_URI = 'mysql://username:password@localhost/database_name'
+    # ... other config settings ...
+```
